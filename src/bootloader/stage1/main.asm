@@ -108,7 +108,7 @@ start:
 	mov di, buffer
 
 .search_kernel:
-	mov si, file_kernel_bin
+	mov si, file_stage2_bin
 	mov cx, 11						; compare up to 11 characters
 	push di
 	repe cmpsb
@@ -127,7 +127,7 @@ start:
 
 	; di should have the adress to the entry
 	mov ax, [di +26]
-	mov [kernel_cluster], ax
+	mov [stage2_cluster], ax
 
 	; load FAT from disk into memory
 	mov ax, [bdb_reserved_sectors]
@@ -137,13 +137,13 @@ start:
 	call disk_read
 
 	; read kernel and process FAT chain
-	mov bx, KERNEL_LOAD_SEGMENT
+	mov bx, STAGE2_LOAD_SEGMENT
 	mov es, bx
-	mov bx, KERNEL_LOAD_OFFSET
+	mov bx, STAGE2_LOAD_OFFSET
 
 .load_kernel_loop:
 	; Read next cluster
-	mov ax, [kernel_cluster]		; first cluster = (kernel_cluster - 2) * sectors_per_cluster + start_sector
+	mov ax, [stage2_cluster]		; first cluster = (stage2_cluster - 2) * sectors_per_cluster + start_sector
 	; not nice :( hardcoded value
 	add ax, 31						; start sector = reserved + fats + root directory size = 1 + 18 + 134 = 33
 
@@ -154,7 +154,7 @@ start:
 	add bx, [bdb_bytes_per_sector]
 
 	; compute location of next cluster
-	mov ax, [kernel_cluster]
+	mov ax, [stage2_cluster]
 	mov cx, 3
 	mul cx,
 	mov cx, 2
@@ -178,7 +178,7 @@ start:
 	cmp ax, 0x0FF8					; end of chain
 	jae	.read_finish
 
-	mov [kernel_cluster], ax
+	mov [stage2_cluster], ax
 	jmp	.load_kernel_loop
 
 .read_finish:
@@ -186,11 +186,11 @@ start:
 	mov dl, [ebr_drive_number]		; boot device in dl
 
 	; et segment registers
-	mov ax, KERNEL_LOAD_SEGMENT
+	mov ax, STAGE2_LOAD_SEGMENT
 	mov	ds, ax
 	mov es, ax
 
-	jmp KERNEL_LOAD_SEGMENT:KERNEL_LOAD_OFFSET
+	jmp STAGE2_LOAD_SEGMENT:STAGE2_LOAD_OFFSET
 
 	jmp wait_key_and_reboot			; should never happen
 
@@ -202,7 +202,7 @@ floppy_error:
 	jmp wait_key_and_reboot
 
 kernel_not_found_error:
-	mov si, msg_kernel_not_found
+	mov si, msg_stage2_not_found
 	call puts
 	jmp wait_key_and_reboot
 
@@ -341,12 +341,12 @@ disk_reset:
 
 msg_loading: 			db 'Loading...', ENDL, 0
 msg_read_failed:		db 'Read from disk failed!', ENDL, 0
-msg_kernel_not_found:	db 'KERNEL.BIN not found!', ENDL, 0
-file_kernel_bin: 		db 'KERNEL  BIN'
-kernel_cluster: 		dw 0
+msg_stage2_not_found:	db 'STAGE2.BIN not found!', ENDL, 0
+file_stage2_bin: 		db 'STAGE2  BIN'
+stage2_cluster: 		dw 0
 
-KERNEL_LOAD_SEGMENT		equ 0x2000
-KERNEL_LOAD_OFFSET		equ 0
+STAGE2_LOAD_SEGMENT		equ 0x2000
+STAGE2_LOAD_OFFSET		equ 0
 
 times 510-($-$$) db 0
 dw 0AA55h

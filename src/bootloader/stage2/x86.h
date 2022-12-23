@@ -1,8 +1,22 @@
 #pragma once
-#include "StdInt.h"
+#include <stdbool.h>
+#include <stdint.h>
 
-void _cdecl x86Div(u64 dividend, u32 divisor, u64* quotientOut, u32* remainderOut);
-void _cdecl x86VideoWriteCharTeletype(char c, u8 page);
-bool _cdecl x86DiskReset(u8 drive);
-bool _cdecl x86DiskRead(u8 drive, u16 cylinder, u16 sector, u16 head, u8 count, void far* dataOut);
-bool _cdecl x86DiskGetDriveParams(u8 drive, u8* driveTypeOut, u16* cylindersOut, u16* sectorsOut, u16* headsOut);
+void 	__attribute__((cdecl)) x86_outb(uint16_t port, uint8_t value);
+uint8_t __attribute__((cdecl)) x86_inb (uint16_t port);
+
+bool 	__attribute__((cdecl)) x86_Disk_GetDriveParams(
+	uint8_t 	drive,
+	uint8_t* 	driveTypeOut,
+	uint16_t* 	cylindersOut,
+	uint16_t* 	sectorsOut, 
+	uint16_t* 	headsOut);
+
+bool 	__attribute__((cdecl)) x86_Disk_Reset(uint8_t drive);
+bool 	__attribute__((cdecl)) x86_Disk_Read(
+	uint8_t 	drive,
+	uint16_t 	cylinder,
+	uint16_t 	sector,
+	uint16_t 	head,
+	uint8_t 	count,
+	void* 		dataOut);

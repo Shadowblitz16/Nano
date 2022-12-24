@@ -1,7 +1,12 @@
 {
 	"files.associations": {
 		"stdint.h": "c",
-		"x86.h": "c"
+		"x86.h": "c",
+		"ctype.h": "c",
+		"memdefs.h": "c",
+		"memory.h": "c",
+		"stdio.h": "c",
+		"disk.h": "c"
 	},
 	"C_Cpp.errorSquiggles": "disabled"
 }

@@ -16,7 +16,7 @@ kernel: $(BUILD_DIR)/kernel.bin
 
 $(BUILD_DIR)/kernel.bin: $(OBJECTS_ASM) $(OBJECTS_C)
 	@$(TARGET_LD) $(TARGET_LINKFLAGS) -Wl,-Map=$(BUILD_DIR)/kernel.map -o $@ $^ $(TARGET_LIBS)
-	@echo "--> Created kernel.bin"
+	@echo "--> Created: kernel.bin"
 
 $(BUILD_DIR)/kernel/c/%.obj: %.c always
 	@mkdir -p $(@D)

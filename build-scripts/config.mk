@@ -1,3 +1,5 @@
+MAKE_DISK_SIZE = 16777216 # 16 mb
+
 export CFLAGS = -std=c99 -g
 export ASMFLAGS =
 export CC = gcc

@@ -1,1 +1,0 @@
-gdb -x debug-script.gdb

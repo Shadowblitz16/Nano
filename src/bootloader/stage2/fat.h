@@ -21,6 +21,20 @@ typedef struct
 } __attribute__((packed)) Fat_DirectoryEntry;
 
 
+typedef struct 
+{
+	uint8_t  Order;
+    int16_t  Chars1[5];
+	uint8_t  Attribute;
+	uint8_t  LongEntryType;
+	uint8_t  Checksum;
+    int16_t  Chars2[6];
+	uint16_t AlwaysZero;
+    int16_t  Chars3[2];
+} __attribute__((packed)) Fat_LongFileEntry;
+
+#define FAT_LFN_LAST				0x40
+
 typedef struct
 {
 	int 		Handle;

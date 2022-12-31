@@ -87,6 +87,10 @@ typedef struct
 	uint8_t		 FatCache[FAT_CACHE_SIZE * SECTOR_SIZE];
 	uint32_t     FatCachePosition;
 
+	uint8_t  	 FatLFNOrder[FAT_LFN_LAST];
+	uint16_t 	 FatLFNCharacters[FAT_LFN_LAST][13];
+	int 		 FatLFNCount;
+
 } Fat_Data;
 static Fat_Data* g_data 			= NULL;
 static uint32_t  g_dataSectionLBA 	= 0;
@@ -181,6 +185,7 @@ bool Fat_Init(Partition* partition)
 	for (int i=0; i<MAX_FILE_HANDLES; i++)
 		g_data->OpenedFiles[i].Opened = false;
 
+	g_data->FatLFNCount = 0;
 	return true;
 }
 
@@ -355,30 +360,56 @@ void 	 	 Fat_Close(Fat_File* file)
 	}
 }
 
-bool Fat_FindFile(Partition* partition, Fat_File* file, const char* name, Fat_DirectoryEntry* entryOut)
+void Fat_GetShortName(const char* name, char shortName[12])
 {
-	char fatName[12];
-	Fat_DirectoryEntry entry;
 
 	// convert from name to fat name
-	memset(fatName, ' ', sizeof(fatName));
-	fatName[11] = '\0';
+	memset(shortName, ' ', 12);
+	shortName[11] = '\0';
 
 	const char* ext = strchr(name, '.');
 	if (ext == NULL)
 		ext = name + 11;
 
 	for (int i=0; i<8 && name[i] && name + i < ext; i++)
-		fatName[i] = toupper(name[i]);
+		shortName[i] = toupper(name[i]);
 
 	if (ext != name + 11)
 	{
 		for (int i=0; i < 3 && ext[i+1]; i++)
-			fatName[i+8] = toupper(ext[i+1]);
+			shortName[i+8] = toupper(ext[i+1]);
 	}
+
+}
+
+bool Fat_FindFile(Partition* partition, Fat_File* file, const char* name, Fat_DirectoryEntry* entryOut)
+{
+	char fatName[12];
+	Fat_DirectoryEntry entry;
+
+	Fat_GetShortName(name, fatName);
 
 	while(Fat_ReadEntry(partition, file, &entry))
 	{
+		if (entry.Attributes == FAT_ATTRIBUTE_LFN) 
+		{
+			Fat_LongFileEntry* lfn = (Fat_LongFileEntry*)&entry;
+
+			int idx 	= g_data->FatLFNCount++;
+			int offset 	= 0;
+			
+			g_data->FatLFNOrder[idx] = lfn->Order & (FAT_LFN_LAST);
+			memcpy(g_data->FatLFNCharacters[idx] + 0 , lfn->Chars1, sizeof(lfn->Chars1));
+			memcpy(g_data->FatLFNCharacters[idx] + 5 , lfn->Chars2, sizeof(lfn->Chars2));
+			memcpy(g_data->FatLFNCharacters[idx] + 11, lfn->Chars3, sizeof(lfn->Chars3));
+
+			// is this the last LFN block
+			if ((lfn->Order & FAT_LFN_LAST) != 0)
+			{
+				
+			}
+		}
+
 		if(memcmp(fatName, entry.Name, 11) == 0)
 		{
 			*entryOut = entry;

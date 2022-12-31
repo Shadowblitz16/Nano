@@ -73,6 +73,7 @@ void clrscr()
 
 void putc(char c)
 {
+    //x86_outb(0xE9, c);
     switch (c)
     {
         case '\n':
@@ -304,7 +305,6 @@ void printf(const char* fmt, ...)
     }
     va_end(args);
 }
-
 void print_buffer(const char* msg, const void* buffer, uint32_t count)
 {
     const uint8_t* u8Buffer = (const uint8_t*)buffer;

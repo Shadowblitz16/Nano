@@ -1,0 +1,8 @@
+megs: 128
+mouse: enabled=0
+romimage: file=BIOS-bochs-latest
+vgaromimage: file=VGABIOS-lgpl-latest
+display_library: x, options="gui_debug"
+
+ata0-master: type=disk, path="build/i686_debug/image.img", cylinders=1024, heads=4, spt=32
+boot: disk

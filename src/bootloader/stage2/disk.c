@@ -1,4 +1,5 @@
 #include "disk.h"
+#include "stdio.h"
 #include "x86.h"
 
 bool Disk_Init(Disk* disk, uint8_t driveNumber)
@@ -8,7 +9,7 @@ bool Disk_Init(Disk* disk, uint8_t driveNumber)
 
 	disk->id = driveNumber;
 
-	if (!x86_Disk_GetDriveParams(disk->id, &driveType, &cylinders, &sectors, &heads))
+	if (!x86_Disk_GetDriveParams(driveNumber, &driveType, &cylinders, &sectors, &heads))
 		return false;
 
 	disk->id 		= driveNumber;

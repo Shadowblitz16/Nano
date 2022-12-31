@@ -6,7 +6,10 @@
 		"memdefs.h": "c",
 		"memory.h": "c",
 		"stdio.h": "c",
-		"disk.h": "c"
+		"disk.h": "c",
+		"mbr.h": "c",
+		"stdlib.h": "c",
+		"string.h": "c"
 	},
 	"C_Cpp.errorSquiggles": "disabled"
 }

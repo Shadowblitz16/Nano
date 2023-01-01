@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "ctype.h"
 #include "minmax.h"
+#include "stdlib.h"
 
 #define SECTOR_SIZE 			512
 #define MAX_PATH_SIZE        	256
@@ -74,6 +75,11 @@ typedef struct
 	uint32_t 	CurrentSectorInCluster;
 } Fat_FileData;
 
+typedef struct {
+	uint8_t  Order;
+	uint16_t Chars[13];
+} Fat_LFNBlock;
+
 typedef struct 
 {
 	union
@@ -87,9 +93,8 @@ typedef struct
 	uint8_t		 FatCache[FAT_CACHE_SIZE * SECTOR_SIZE];
 	uint32_t     FatCachePosition;
 
-	uint8_t  	 FatLFNOrder[FAT_LFN_LAST];
-	uint16_t 	 FatLFNCharacters[FAT_LFN_LAST][13];
-	int 		 FatLFNCount;
+	Fat_LFNBlock 	LFNBlocks[FAT_LFN_LAST];
+	int 		 	LFNCount;
 
 } Fat_Data;
 static Fat_Data* g_data 			= NULL;
@@ -97,6 +102,13 @@ static uint32_t  g_dataSectionLBA 	= 0;
 static uint8_t	 g_fatType        	= 0;
 static uint32_t  g_totalSectors   	= 0;
 static uint32_t	 g_sectorsPerFat	= 0;
+
+int Fat_CompareLFNBlocks(const void* blockA, const void* blockB)
+{
+	Fat_LFNBlock* a = (Fat_LFNBlock*) blockA;
+	Fat_LFNBlock* b = (Fat_LFNBlock*) blockB;
+	return ((int)a->Order) - ((int)b->Order);
+}
 
 bool Fat_ReadBootSector(Partition* partition)
 {
@@ -185,7 +197,7 @@ bool Fat_Init(Partition* partition)
 	for (int i=0; i<MAX_FILE_HANDLES; i++)
 		g_data->OpenedFiles[i].Opened = false;
 
-	g_data->FatLFNCount = 0;
+	g_data->LFNCount = 0;
 	return true;
 }
 
@@ -384,33 +396,48 @@ void Fat_GetShortName(const char* name, char shortName[12])
 
 bool Fat_FindFile(Partition* partition, Fat_File* file, const char* name, Fat_DirectoryEntry* entryOut)
 {
-	char fatName[12];
+	char shortName[12];
+	//char longName[256];
 	Fat_DirectoryEntry entry;
 
-	Fat_GetShortName(name, fatName);
+	Fat_GetShortName(name, shortName);
 
 	while(Fat_ReadEntry(partition, file, &entry))
 	{
-		if (entry.Attributes == FAT_ATTRIBUTE_LFN) 
-		{
-			Fat_LongFileEntry* lfn = (Fat_LongFileEntry*)&entry;
+		
 
-			int idx 	= g_data->FatLFNCount++;
-			int offset 	= 0;
-			
-			g_data->FatLFNOrder[idx] = lfn->Order & (FAT_LFN_LAST);
-			memcpy(g_data->FatLFNCharacters[idx] + 0 , lfn->Chars1, sizeof(lfn->Chars1));
-			memcpy(g_data->FatLFNCharacters[idx] + 5 , lfn->Chars2, sizeof(lfn->Chars2));
-			memcpy(g_data->FatLFNCharacters[idx] + 11, lfn->Chars3, sizeof(lfn->Chars3));
+		// if (entry.Attributes == FAT_ATTRIBUTE_LFN) 
+		// {
+		// 	Fat_LongFileEntry* lfn = (Fat_LongFileEntry*)&entry;
 
-			// is this the last LFN block
-			if ((lfn->Order & FAT_LFN_LAST) != 0)
-			{
-				
-			}
-		}
+		// 	int idx 	= g_data->LFNCount++;		
+		// 	g_data->LFNBlocks[idx].Order = lfn->Order & (FAT_LFN_LAST - 1);
+		// 	memcpy(g_data->LFNBlocks[idx].Chars + 0 , lfn->Chars1, sizeof(lfn->Chars1));
+		// 	memcpy(g_data->LFNBlocks[idx].Chars + 5 , lfn->Chars2, sizeof(lfn->Chars2));
+		// 	memcpy(g_data->LFNBlocks[idx].Chars + 11, lfn->Chars3, sizeof(lfn->Chars3));
 
-		if(memcmp(fatName, entry.Name, 11) == 0)
+		// 	// is this the last LFN block
+		// 	if ((lfn->Order & FAT_LFN_LAST) != 0)
+		// 	{
+		// 		qsort(g_data->LFNBlocks, g_data->LFNCount, sizeof(Fat_LFNBlock), Fat_CompareLFNBlocks);
+		// 		const char* namePos = name;
+		// 		for (int i = 0; i < g_data->LFNCount; i++)
+		// 		{
+		// 			int16_t* chars 		= g_data->LFNBlocks[i].Chars;
+		// 			int16_t* charsLimit = chars + 13;
+		// 			while (chars < charsLimit && *chars != 0)
+		// 			{
+		// 				int codePoint = 0;
+		// 				chars 	= utf16_to_codepoint(chars, &codePoint);
+		// 				namePos = codepoint_to_utf16(codePoint, namePos);
+		// 			}
+		// 		}
+		// 		*namePos = 0;
+		// 		printf("LFN: %s", longName);
+		// 	}
+		// }
+
+		if(memcmp(shortName, entry.Name, 11) == 0)
 		{
 			*entryOut = entry;
 			return true;

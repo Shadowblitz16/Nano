@@ -2,10 +2,10 @@ from pathlib import Path
 from SCons.Variables import *
 from SCons.Environment import *
 from SCons.Node import *
-from build_scripts.phony import PhonyTargets
-from build_scripts.utility import ParseSize
+from scripts.phony import PhonyTargets
+from scripts.utility import ParseSize
 
-VARS = Variables('build_scripts/config.py', ARGUMENTS)
+VARS = Variables('scripts/config.py', ARGUMENTS)
 VARS.AddVariables(
     EnumVariable("config",
                  help="Build configuration",
@@ -135,19 +135,19 @@ Export('TARGET_ENVIRONMENT')
 variantDir = 'build/{0}_{1}'.format(TARGET_ENVIRONMENT['arch'], TARGET_ENVIRONMENT['config'])
 variantDirStage1 = variantDir + '/stage1_{0}'.format(TARGET_ENVIRONMENT['imageFS'])
 
-SConscript('src/bootloader/stage1/SConscript', variant_dir=variantDirStage1, duplicate=0)
-SConscript('src/bootloader/stage2/SConscript', variant_dir=variantDir + '/stage2', duplicate=0)
-SConscript('src/kernel/SConscript', variant_dir=variantDir + '/kernel', duplicate=0)
-SConscript('src_root/SConscript', variant_dir=variantDir, duplicate=0)
+SConscript('source/bootloader/stage1/SConscript', variant_dir=variantDirStage1, duplicate=0)
+SConscript('source/bootloader/stage2/SConscript', variant_dir=variantDir + '/stage2', duplicate=0)
+SConscript('source/kernel/SConscript', variant_dir=variantDir + '/kernel', duplicate=0)
+SConscript('image/SConscript', variant_dir=variantDir, duplicate=0)
 
 Import('image')
 
 # Phony targets
 PhonyTargets(HOST_ENVIRONMENT, 
-             run=['./build_scripts/sh/run.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
-             debug=['./build_scripts/sh/debug.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
-             bochs=['./build_scripts/sh/bochs.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
-             toolchain=['./build_scripts/sh/setup_toolchain.sh', HOST_ENVIRONMENT['toolchain']])
+             run=['./scripts/sh/run.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
+             debug=['./scripts/sh/debug.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
+             bochs=['./scripts/sh/bochs.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
+             toolchain=['./scripts/sh/setup_toolchain.sh', HOST_ENVIRONMENT['toolchain']])
 
 Depends('run', image)
 Depends('debug', image)

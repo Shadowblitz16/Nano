@@ -9,7 +9,9 @@
 		"disk.h": "c",
 		"mbr.h": "c",
 		"stdlib.h": "c",
-		"string.h": "c"
+		"string.h": "c",
+		"gdt.h": "c",
+		"idt.h": "c"
 	},
 	"C_Cpp.errorSquiggles": "disabled"
 }

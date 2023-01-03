@@ -1,3 +1,4 @@
+.toolchain/
 build/
 build_deps/
 *.err

@@ -1,5 +1,5 @@
 #pragma once
 #include <stddef.h>
 
-
-void qsort(void* base, size_t num, size_t size, int(*comparer)(const void*, const void*));
+typedef int(*Comparer)(const void*, const void*);
+void qsort(void* base, size_t num, size_t size, Comparer comparer);

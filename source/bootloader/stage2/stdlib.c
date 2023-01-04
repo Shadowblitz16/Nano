@@ -1,37 +1,57 @@
-#include "stdlib.h"
-#include "stdint.h"
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
-void qsort_internal(void* base, size_t num, size_t size, size_t left, size_t right, int(*comparer)(const void*, const void*))
+typedef int (*Comparer)(const void*, const void*);
+
+void qswap_internal(uint8_t* a, uint8_t* b)
+{
+    uint8_t tmpA = *a;
+	uint8_t tmpB = *b;
+    *a = tmpB;
+    *b = tmpA;
+}
+
+void qsort_internal(void* base, size_t num, size_t size, Comparer compar, size_t left, size_t right)
 {
     if (left >= right)
         return;
 
-    int i = left, j = right;
-    void* pivot = base + (i * size);
-    uint8_t temp;
+    size_t 	l	 	= left; 
+	size_t 	r 		= right;
+    void* 	pivot 	= base + (l * size);
 
     for (;;) 
     {
-        while ((*comparer)(base + (i * size), pivot) < 0) i++;
-        while ((*comparer)(pivot, base + (j * size)) < 0) j--;
-        if (i >= j)
-            break;
+        while ((*compar)(base + (l * size), pivot) < 0) l++;
+        while ((*compar)(pivot, base + (r * size)) < 0) r--;
+        if (l >= r)
+			break;
 
-        // swap
+        // Swap
         for (int k = 0; k < size; k++)
         {
-            temp = *((uint8_t*)(base + (i * size)) + k);
-            *((uint8_t*)(base + (i * size)) + k) = *((uint8_t*)(base + (j * size)) + k);
-            *((uint8_t*)(base + (j * size)) + k) = temp;
+			uint8_t tempA = *((uint8_t*)(base + (l * size)) + k);
+			uint8_t tempB = *((uint8_t*)(base + (r * size)) + k);
+			
+			qswap_internal(&tempA, &tempB);
+			
+			*((uint8_t*)(base + (l * size)) + k) = tempA;
+			*((uint8_t*)(base + (r * size)) + k) = tempB;
+
         }
-        i++;
-        j--;
+
+        l++;
+        r--;
     }
 
-    qsort_internal(base, num, size, left, i - 1, comparer);
-    qsort_internal(base, num, size, j + 1, right, comparer);
+    qsort_internal(base, num, size, compar, left, l - 1 );
+    qsort_internal(base, num, size, compar, r + 1, right);
 }
-void qsort		   (void* base, size_t num, size_t size, int(*comparer)(const void*, const void*))
+
+void qsort(void* base, size_t num, size_t size, Comparer compar)
 {
-	qsort_internal(base, num, size, 0, num - 1, comparer);
+	qsort_internal(base, num, size, compar, 0, num - 1);
 }

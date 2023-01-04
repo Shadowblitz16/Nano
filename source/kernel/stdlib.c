@@ -1,36 +1,57 @@
-#include "stdlib.h"
-#include "stdint.h"
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
-void qsort_internel(void* base, size_t num, size_t size, size_t left, size_t right, int(*comparer)(const void*, const void*))
+typedef int (*Comparer)(const void*, const void*);
+
+void qswap_internal(uint8_t* a, uint8_t* b)
 {
-	if (left >= right) 
-		return;
-
-	int i1 = left;
-	int i2 = right;
-	void* pivot = (base + (i1 * size));
-	uint8_t tmp;
-	for (;;)
-	{
-		while ((*comparer)(base + (i1 * size), pivot) < 0) i1++;
-		while ((*comparer)(pivot, base + (i2 * size)) < 0) i2++;
-		if (i1 >= i2) break;
-
-		// swap
-		for (int k =0; k < size; k++)
-		{
-			tmp = *((uint8_t*)(base + (i1 * size)) + k);
-			*((uint8_t*)(base + (i1 * size)) + k) = *((uint8_t*)(base + (i2 * size)) + k);
-			*((uint8_t*)(base + (i2 * size)) + k) = tmp;
-		}
-		i1++;
-		i2--;
-	}
-
-	qsort_internel(base, num, size, left, i1 - 1, comparer);	
-	qsort_internel(base, num, size, i2 - 1, right, comparer);	
+    uint8_t tmpA = *a;
+	uint8_t tmpB = *b;
+    *a = tmpB;
+    *b = tmpA;
 }
-void qsort		   (void* base, size_t num, size_t size, int(*comparer)(const void*, const void*))
+
+void qsort_internal(void* base, size_t num, size_t size, Comparer compar, size_t left, size_t right)
 {
-	qsort_internel(base, num, size, 0, num - 1, comparer);
+    if (left >= right)
+        return;
+
+    size_t 	l	 	= left; 
+	size_t 	r 		= right;
+    void* 	pivot 	= base + (l * size);
+
+    for (;;) 
+    {
+        while ((*compar)(base + (l * size), pivot) < 0) l++;
+        while ((*compar)(pivot, base + (r * size)) < 0) r--;
+        if (l >= r)
+			break;
+
+        // Swap
+        for (int k = 0; k < size; k++)
+        {
+			uint8_t tempA = *((uint8_t*)(base + (l * size)) + k);
+			uint8_t tempB = *((uint8_t*)(base + (r * size)) + k);
+			
+			qswap_internal(&tempA, &tempB);
+			
+			*((uint8_t*)(base + (l * size)) + k) = tempA;
+			*((uint8_t*)(base + (r * size)) + k) = tempB;
+
+        }
+
+        l++;
+        r--;
+    }
+
+    qsort_internal(base, num, size, compar, left, l - 1 );
+    qsort_internal(base, num, size, compar, r + 1, right);
+}
+
+void qsort(void* base, size_t num, size_t size, Comparer compar)
+{
+	qsort_internal(base, num, size, compar, 0, num - 1);
 }

@@ -1,19 +1,19 @@
 [bits 32]
 
-extern i686_ISR_Handler;
+extern i8259_ISR_Handler;
 
 %macro ISR_NOERRORCODE 1
 
-global i686_ISR%1
-i686_ISR%1:
+global i8259_ISR%1
+i8259_ISR%1:
 	push 0 				; push dummy error code
 	push %1				; push interrupt number
 	jmp isr_common
 
 %endmacro
 %macro ISR_ERRORCODE 1
-global i686_ISR%1
-i686_ISR%1:
+global i8259_ISR%1
+i8259_ISR%1:
 						; cpu pushes an error code to the stack
 	push %1				; push interrupt number
 	jmp isr_common
@@ -35,7 +35,7 @@ isr_common:
 	mov gs, ax
 
 	push esp			; pass pointer to stack to C, so we can access all the pushed infomation
-	call i686_ISR_Handler
+	call i8259_ISR_Handler
 	add esp, 4
 
 	pop eax				; restore old segment

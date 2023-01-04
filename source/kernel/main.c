@@ -3,6 +3,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "memory.h"
+#include <arch/i686/irq.h>
 #include <hal/hal.h>
 
 extern uint8_t __bss_start;
@@ -27,6 +28,11 @@ int my_compare(const void* a, const void* b)
 	return strcmp(a_int, b_int);
 }
 
+void timer(Registers* reg)
+{
+	printf(".");
+}
+
 void start(uint16_t bootDrive)
 {
 	// call global constructors
@@ -41,11 +47,15 @@ void start(uint16_t bootDrive)
 	printf("Nanobyte OS\n");
 	printf("This operating system is under construction.\n");
 
-	crash_me();
+	i8259_IRQ_RegisterHandler(0, timer);
 
-	// printf("%d ", sizeof(my_array) / sizeof(my_array[0]));
-	// qsort(my_array, sizeof(my_array) / sizeof(my_array[0]), sizeof(my_array[0]), my_compare);
-	// for (int i = 0; i < sizeof(my_array) / sizeof(my_array[0]); i+=1) 
+	// size_t num  = sizeof(my_array) / sizeof(my_array[0]);
+	// size_t size = sizeof(my_array[0]);
+	// printf("num=%d\n", num);
+	// printf("size=%d\n", size);
+
+	// qsort(my_array, num, size, my_compare);
+	// for (int i = 0; i < num; i+=1) 
 	// 	printf("%s ", my_array[i]);
 	// printf("\n");
 

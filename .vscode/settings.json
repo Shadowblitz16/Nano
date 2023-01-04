@@ -11,7 +11,10 @@
 		"stdlib.h": "c",
 		"string.h": "c",
 		"gdt.h": "c",
-		"idt.h": "c"
+		"idt.h": "c",
+		"irq.h": "c",
+		"pic.h": "c",
+		"stddef.h": "c"
 	},
 	"C_Cpp.errorSquiggles": "disabled"
 }

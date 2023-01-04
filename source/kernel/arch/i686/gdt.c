@@ -26,6 +26,8 @@ typedef enum {
 	GDT_ACCESS_CODE_SEGMENT		  		= 0x18,
 	GDT_ACCESS_DATA_SEGMENT 			= 0x10,
 
+	GDT_ACCESS_DESCRIPTOR_TSS			= 0x00,
+
 	GDT_ACCESS_RING0		 			= 0x00,
 	GDT_ACCESS_RING1 					= 0x20,
 	GDT_ACCESS_RING2		 			= 0x40,
@@ -99,9 +101,9 @@ GDTDescriptor	g_GDTDescriptor = {
 	g_GDT
 };
 
-void __attribute__((cdecl)) i686_GDT_Load(GDTDescriptor* descriptor, uint16_t codeSegment, uint16_t dataSegment);
+void __attribute__((cdecl)) i8259_GDT_Load(GDTDescriptor* descriptor, uint16_t codeSegment, uint16_t dataSegment);
 
-void i686_GDT_Init()
+void i8259_GDT_Init()
 {
-	i686_GDT_Load(&g_GDTDescriptor, i686_GDT_CODE_SEGMENT, i686_GDT_DATA_SEGMENT);
+	i8259_GDT_Load(&g_GDTDescriptor, i8259_GDT_CODE_SEGMENT, i8259_GDT_DATA_SEGMENT);
 }

@@ -42,24 +42,19 @@ static const char* const g_Exceptions[] = {
     ""
 };
 
-void i686_ISR_InitGates();
+void i8259_ISR_InitGates();
 
-void i686_ISR_Init()
+void i8259_ISR_Init()
 {
-	i686_ISR_InitGates();
-	for (int i=0; i<255; i++)
-		i686_IDT_EnableGate(i);
+	i8259_ISR_InitGates();
+	for (int i = 0; i < 256; i++)
+		i8259_IDT_EnableGate(i);
 
-	i686_IDT_DisableGate(0x80);
+	i8259_IDT_DisableGate(0x80);
 }
 
-void i686_ISR_RegisterHandler(int interrupt, ISRHandler handler)
-{
-	g_ISRHandlers[interrupt] = handler;
-	i686_IDT_EnableGate(interrupt);
-}
 
-void __attribute__((cdecl)) i686_ISR_Handler(Registers* regs)
+void __attribute__((cdecl)) i8259_ISR_Handler(Registers* regs)
 {
 	if (g_ISRHandlers[regs->interrupt] != NULL)
 		g_ISRHandlers[regs->interrupt](regs);
@@ -75,6 +70,12 @@ void __attribute__((cdecl)) i686_ISR_Handler(Registers* regs)
 		printf("  interrupt=%x errorcode=%x\n", regs->interrupt, regs->error);
 		
 		printf("KERNEL PANIC!\n");
-		i686_Panic();
+		i8259_Panic();
 	}
+}
+
+void i8259_ISR_RegisterHandler(int interrupt, ISRHandler handler)
+{
+	g_ISRHandlers[interrupt] = handler;
+	i8259_IDT_EnableGate(interrupt);
 }

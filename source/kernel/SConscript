@@ -26,10 +26,16 @@ objects  = env.Object(sources)
 obj_crti = objects.pop(FindIndex(objects, lambda item: IsFileName(item, 'crti.o')))
 obj_crtn = objects.pop(FindIndex(objects, lambda item: IsFileName(item, 'crtn.o')))
 
+Import('LibCore')
+static_libs = [
+    LibCore,
+]
+
 objects = [
     obj_crti,
     os.path.join(env["TOOLCHAIN_LIBGCC"], 'crtbegin.o'),
     *objects,
+    *static_libs,
     os.path.join(env["TOOLCHAIN_LIBGCC"], 'crtend.o'),
     obj_crtn
 ]

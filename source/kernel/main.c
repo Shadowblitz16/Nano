@@ -30,7 +30,8 @@ int my_compare(const void* a, const void* b)
 
 void timer(Registers* reg)
 {
-	printf(".");
+	 printf("Hello from kernel!\n");
+	dprintf("\033[34mHello from kernel!\033[0m\n");
 }
 
 void start(uint16_t bootDrive)
@@ -40,7 +41,7 @@ void start(uint16_t bootDrive)
 
 	HAL_Init();
 
-	clrscr();
+	//clrscr();
 	//printf("%d \n", 0);
 	//printf("%d \n", 1);
 

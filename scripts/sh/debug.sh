@@ -1,6 +1,6 @@
 #!/bin/bash
 
-QEMU_ARGS="-S -gdb stdio -m 32"
+QEMU_ARGS="-S -debugcon stdio -gdb stdio -m 32"
 
 if [ "$#" -le 1 ]; then
     echo "Usage: ./debug.sh <image_type> <image>"

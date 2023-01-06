@@ -1,3 +1,5 @@
+extern LoadGDT
+
 %macro x86_EnterRealMode 0
 	[bits 32]
 	jmp word 18h:.pmode16		; jump to 16-bit protected mode segment
@@ -25,7 +27,8 @@
 
 
 %macro x86_EnterProtectedMode 0
-	cli;
+	cli
+    call LoadGDT
 
 	; 4 - setr protected enable flag in CR0
 	mov eax, cr0
@@ -207,6 +210,7 @@ x86_Disk_Reset:
 ;                           uint8_t count,
 ;                           void far * dataOut);
 ;
+
 global x86_Disk_Read
 x86_Disk_Read:
 
@@ -249,6 +253,110 @@ x86_Disk_Read:
     ; restore regs
     pop es
     pop ebx
+
+	push eax
+	x86_EnterProtectedMode
+	pop eax
+
+    ; restore old call frame
+    mov esp, ebp
+    pop ebp
+    ret
+
+;
+;   int 	__attribute__((cdecl)) x86_Video_GetVbeInfo(void* infoOut);
+;
+global x86_Video_GetVbeInfo
+x86_Video_GetVbeInfo:
+    ; make new call frame
+    push ebp             ; save old call frame
+    mov ebp, esp          ; initialize new call frame
+
+	x86_EnterRealMode
+
+    push edi
+    push es
+    push ebp
+
+    mov eax, 0x4f00
+    LinearToSegOffset [bp + 8], es, edi, di
+    int 10h
+
+    pop ebp
+    pop es
+    pop edi
+
+	push eax
+	x86_EnterProtectedMode
+	pop eax
+
+    ; restore old call frame
+    mov esp, ebp
+    pop ebp
+    ret
+
+;
+;   int 	__attribute__((cdecl)) x86_Video_GetModeInfo(uint16_t mode, void* infoOut);
+;   
+global x86_Video_GetModeInfo
+x86_Video_GetModeInfo:
+    ; make new call frame
+    push ebp             ; save old call frame
+    mov ebp, esp         ; initialize new call frame
+
+	x86_EnterRealMode
+
+    push edi
+    push es
+    push ebp
+    push ecx
+
+    mov ax, 0x4f01
+    mov cx, [bp + 8]
+    LinearToSegOffset [bp + 12], es, edi, di
+    int 10h
+
+    pop ecx
+    pop ebp
+    pop es
+    pop edi
+
+	push eax
+	x86_EnterProtectedMode
+	pop eax
+
+    ; restore old call frame
+    mov esp, ebp
+    pop ebp
+    ret
+
+;
+;   int 	__attribute__((cdecl)) x86_Video_SetMode(uint16_t mode);
+;
+global x86_Video_SetMode
+x86_Video_SetMode:
+    ; make new call frame
+    push ebp             ; save old call frame
+    mov ebp, esp          ; initialize new call frame
+
+	x86_EnterRealMode
+
+    push edi
+    push es
+    push ebp
+    push ebx
+
+    mov ax, 0
+    mov es, ax
+    mov edi, 0
+    mov ax, 0x4f02
+    mov bx, [bp + 8]
+    int 10h
+
+    pop ebx
+    pop ebp
+    pop es
+    pop edi
 
 	push eax
 	x86_EnterProtectedMode

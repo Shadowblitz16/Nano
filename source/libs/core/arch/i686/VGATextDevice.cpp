@@ -1,6 +1,5 @@
 #include "VGATextDevice.hpp"
 #include "IO.hpp"
-#include <stdint.h>
 namespace Arch::I686 
 {
 	static constexpr unsigned ScreenWidth  = 80;
@@ -25,11 +24,10 @@ namespace Arch::I686
 	}
 	size_t 	VGATextDevice::Write(const uint8_t* data, size_t size)
 	{
-		size_t i=0;
-		for (; data[i] && i < size; i++)
+		for (size_t i=0; i < size; i++)
 			PutChar(data[i]);
 
-		return i+1;
+		return size;
 	}
 	
 	void    VGATextDevice::Clear ()
@@ -70,11 +68,17 @@ namespace Arch::I686
 
 		Out(0x3D4, 0x0F);
 		Out(0x3D5, (uint8_t)((m_CursorPos >> 0) & 0xFF));
+
+		Out(0x3D4, 0x0E);
+		Out(0x3D5, (uint8_t)((m_CursorPos >> 8) & 0xFF));
 	}
 	void   	VGATextDevice::SetCursorY(int  y)
 	{
     	m_CursorPos = y * ScreenWidth + m_ScreenX;
 		
+		Out(0x3D4, 0x0F);
+		Out(0x3D5, (uint8_t)((m_CursorPos >> 0) & 0xFF));
+
 		Out(0x3D4, 0x0E);
 		Out(0x3D5, (uint8_t)((m_CursorPos >> 8) & 0xFF));
 	}

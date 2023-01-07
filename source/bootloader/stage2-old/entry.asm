@@ -5,7 +5,7 @@ section .entry
 extern __bss_start
 extern __end
 extern _init
-extern Start
+extern start
 global entry
 
 entry:
@@ -63,7 +63,7 @@ entry:
     xor edx, edx
     mov dl, [g_BootDrive]
     push edx
-    call Start
+    call start
 
     cli
     hlt

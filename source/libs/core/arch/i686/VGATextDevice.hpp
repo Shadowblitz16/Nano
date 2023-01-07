@@ -1,6 +1,7 @@
 #pragma once
-#include <dev/CharacterDevice.hpp>
-
+#include <core/dev/CharacterDevice.hpp>
+#include <stdint.h>
+#include <stddef.h>
 namespace Arch::I686 
 {
 	class VGATextDevice : public CharacterDevice

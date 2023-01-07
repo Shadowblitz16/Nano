@@ -13,9 +13,9 @@ env.Append(
         '-Wl,-Map=' + env.File('stage2.map').path
     ],
     CPPPATH = 
-    [
+    [ 
         env.Dir('.').srcnode(),
-        env['ROOTDIR'].Dir('source/libs').srcnode() 
+        env.Dir('.').srcnode() 
     ],
     ASFLAGS = [ '-I', env.Dir('.').srcnode() ]
 )

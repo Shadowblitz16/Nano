@@ -32,7 +32,7 @@ bool TextDevice::Write (      char  c)
 bool TextDevice::Write (const char* s)
 {
 	bool ok = true;
- 	while(*s)
+ 	while(*s && ok)
 	{
 		ok = ok && Write(*s);
 		s++;

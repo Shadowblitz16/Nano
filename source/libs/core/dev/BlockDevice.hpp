@@ -8,13 +8,12 @@ enum class SeekMode
 	Set,
 	Cur,
 	End
-}
+};
 
 class BlockDevice : public CharacterDevice
 {
 	public:
-	virtual ~BlockDevice() { }
-
-	virtual void   Seek (SeekMode pos, int rel) = 0;
-	virtual size_t Size () = 0;
+	virtual void   Seek    (SeekMode mode, int rel) = 0;
+	virtual size_t Size    () = 0;
+	virtual size_t Position() = 0;
 };

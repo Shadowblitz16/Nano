@@ -3,7 +3,7 @@
         {
             "name": "GCC",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
                 "${workspaceFolder}/source/kernel",
                 "${workspaceFolder}/.toolchains/i686-elf/lib/gcc/i686-elf/11.2.0/include"
             ],

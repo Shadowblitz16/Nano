@@ -7,5 +7,5 @@ EXPORT int __cxa_atexit(void (*destructor) (void *), void *arg, void *__dso_hand
 
 void operator delete(void*, unsigned long)
 {
-	Arch::I686::Panic();
+	Arch::I686::IO::Panic();
 }

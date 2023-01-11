@@ -5,6 +5,7 @@ section .entry
 extern __bss_start
 extern __end
 extern _init
+
 extern Start
 global entry
 

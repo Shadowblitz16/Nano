@@ -1,5 +1,5 @@
 #include "TextDevice.hpp"
-#include <cpp/TypeTraits.hpp>
+
 
 enum class FormatState
 {
@@ -18,61 +18,54 @@ enum class FormatLength
 	LongLong  		= 4,
 };
 
-const char TextDevice::s_hexChars[] = "0123456789abcdef";
+const char TextDevice::s_hexChars[] = "0123456789ABCDEF";
 TextDevice::TextDevice(CharacterDevice* dev)
 : m_dev(dev)
 {
 
 }
 
-bool TextDevice::Write (      char  c)
+bool TextDevice::Write (      char  chr)
 {
-	return m_dev->Write(reinterpret_cast<const uint8_t*>(&c), sizeof(c)) == sizeof(c);
+	return m_dev->Write(reinterpret_cast<const uint8_t*>(&chr), sizeof(chr)) == sizeof(chr);
 }
-bool TextDevice::Write (const char* s)
+bool TextDevice::Write (const char* str)
 {
 	bool ok = true;
- 	while(*s && ok)
+ 	while(*str && ok)
 	{
-		ok = ok && Write(*s);
-		s++;
+		ok = ok && Write(*str);
+		str++;
 	}
 	return ok;
 }
-bool TextDevice::Format(const char* f, ...)
+
+bool TextDevice::VFormat(const char* fmt, va_list args)
 {
-	bool ok = true;
-	va_list args;
-	va_start(args, f);
-	ok = ok && Format(f, args);
-	va_end(args);
-	return ok;
-}
-bool TextDevice::Format(const char* f, va_list args)
-{
-	bool		 ok		 = true;
+
 	FormatState  state   = FormatState::Default;
     FormatLength length  = FormatLength::Default;
     int          radix   = 10;
     bool 		 sign    = false;
     bool 		 number  = false;
+	bool		 ok		 = true;
 
-    while (*f)
+    while (*fmt)
     {
         switch (state)
         {
             case FormatState::Default:
-                switch (*f)
+                switch (*fmt)
                 {
                     case '%':   state = FormatState::Length;
                                 break;
-                    default:    ok = ok && Write(*f);
+                    default:    ok = ok && Write(*fmt);
                                 break;
                 }
                 break;
 
             case FormatState::Length:
-                switch (*f)
+                switch (*fmt)
                 {
                     case 'h':   length = FormatLength::Short;
                                 state  = FormatState::LengthShort;
@@ -85,7 +78,7 @@ bool TextDevice::Format(const char* f, va_list args)
                 break;
 
             case FormatState::LengthShort:
-                if (*f == 'h')
+                if (*fmt == 'h')
                 {
                     length = FormatLength::ShortShort;
                     state  = FormatState::Spec;
@@ -94,7 +87,7 @@ bool TextDevice::Format(const char* f, va_list args)
                 break;
 
             case FormatState::LengthLong:
-                if (*f == 'l')
+                if (*fmt == 'l')
                 {
                     length = FormatLength::LongLong;
                     state  = FormatState::Spec;
@@ -104,13 +97,13 @@ bool TextDevice::Format(const char* f, va_list args)
 
             case FormatState::Spec:
             PRINTF_STATE_SPEC:
-                switch (*f)
+                switch (*fmt)
                 {
                     case 'c':   ok = ok && Write((char)va_arg(args, int));
                                 break;
 
                     case 's':   
-                                ok = ok && Write((const char*)va_arg(args, const char*));
+                                ok = ok && Write(va_arg(args, const char*));
                                 break;
 
                     case '%':   ok = ok && Write('%');
@@ -143,13 +136,13 @@ bool TextDevice::Format(const char* f, va_list args)
                         {
                             case FormatLength::ShortShort:
                             case FormatLength::Short:
-                            case FormatLength::Default:     ok = ok && Write<signed int>(va_arg(args, signed int), radix);
+                            case FormatLength::Default:     ok = ok && Write(va_arg(args, int), radix);
                                                             break;
 
-                            case FormatLength::Long:        ok = ok && Write<signed long>(va_arg(args, signed long), radix);
+                            case FormatLength::Long:        ok = ok && Write(va_arg(args, long), radix);
                                                             break;
 
-                            case FormatLength::LongLong:  	ok = ok && Write<signed long long>(va_arg(args, signed long long), radix);
+                            case FormatLength::LongLong:  	ok = ok && Write(va_arg(args, long long), radix);
                                                             break;
                         }
                     }
@@ -159,13 +152,13 @@ bool TextDevice::Format(const char* f, va_list args)
                         {
                             case FormatLength::ShortShort:
                             case FormatLength::Short:
-                            case FormatLength::Default:     ok = ok && Write<unsigned int>(va_arg(args, unsigned int), radix);
+                            case FormatLength::Default:     ok = ok && Write(va_arg(args, unsigned int), radix);
                                                             break;
                                                             
-                            case FormatLength::Long:        ok = ok && Write<unsigned long>(va_arg(args, unsigned long), radix);
+                            case FormatLength::Long:        ok = ok && Write(va_arg(args, unsigned long), radix);
                                                             break;
 
-                            case FormatLength::LongLong:   	ok = ok && Write<unsigned long long>(va_arg(args, unsigned long long), radix);
+                            case FormatLength::LongLong:   	ok = ok && Write(va_arg(args, unsigned long long), radix);
                                                             break;
                         }
                     }
@@ -180,15 +173,24 @@ bool TextDevice::Format(const char* f, va_list args)
                 break;
         }
 
-        f++;
+        fmt++;
     }
+	return ok;
+}
+bool TextDevice::Format (const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	bool ok = VFormat(fmt, args);
+	va_end(args);
+
 	return ok;
 }
 bool TextDevice::FormatBuffer(const char* msg, const void* buffer, size_t count)
 {
-	bool ok = true;
 	const uint8_t* u8Buffer = (const uint8_t*)buffer;
-    
+ 	bool ok = true;
+       
     ok = ok && Write(msg);
     for (uint16_t i = 0; i < count; i++)
     {
@@ -199,36 +201,3 @@ bool TextDevice::FormatBuffer(const char* msg, const void* buffer, size_t count)
 	return ok;
 }
 
-
-template<typename TNumber>
-bool TextDevice::Write(TNumber value, int radix)
-{
-	bool ok = true;
-	typename MakeUnsigned<TNumber>::Type number;
-	if (IsSigned<TNumber>() && value < 0)
-	{
-		ok = ok && Write('-');
-		number = -value;
-	}
-	else
-	{
-		number =  value;
-	}
-	
-	char buffer[32];
-	int pos = 0;
-
-	// Convert number to ASCII
-	do
-	{
-		typename MakeUnsigned<TNumber>::Type rem = number % radix;
-		number /= radix;
-		buffer[pos++] = s_hexChars[rem];
-	} while (number > 0);
-
-	// Write number in reverse order
-	while(--pos >= 0)
-		ok = ok && Write(buffer[pos]);
-	
-	return ok;
-}
